@@ -30,6 +30,7 @@ https://raw.githubusercontent.com/Akamaru/Pi-Hole-Lists/master/youtube.txt 	 </b
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts </br>
 
 <h1>piholeBL.txt</h1>
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/piholeBL.txt </br>
 The file piholeBL.txt contains all the above domains grouped in one file. </br>
 The below files can be added additionally. <p>
 
