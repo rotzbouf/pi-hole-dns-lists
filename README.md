@@ -5,10 +5,9 @@ DNS Lists to use with Pi-Hole DNS Blocker
  - Go to Settings
  - Open Blocklists Tab
  
-You may remove all default blocklists as tehy are included again in this list.
+You may remove all default blocklists as they are included again in this list.
 
 https://mirror1.malwaredomains.com/files/justdomains
-
 http://sysctl.org/cameleon/hosts
 
 https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist 	
