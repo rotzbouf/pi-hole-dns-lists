@@ -47,6 +47,7 @@ https://v.firebog.net/hosts/Easyprivacy.txt </br>
 https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-blocklist.txt </br>
 https://v.firebog.net/hosts/Prigent-Malware.txt </br>
 https://v.firebog.net/hosts/Prigent-Phishing.txt </br>
+https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/SmartTV.txt </br>
 
 Check out https://firebog.net/ for more lists
 
