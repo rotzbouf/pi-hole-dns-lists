@@ -29,6 +29,9 @@ https://raw.githubusercontent.com/Akamaru/Pi-Hole-Lists/master/other.txt 	 </br>
 https://raw.githubusercontent.com/Akamaru/Pi-Hole-Lists/master/youtube.txt 	 </br>
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts </br>
 
+<h1>piholeBL.txt</h1>
+The file piholeBL.txt contains all the above domains grouped in one file.
+
 http://osint.bambenekconsulting.com/feeds/c2-dommasterlist.txt </br>
 http://www.malwaredomainlist.com/hostslist/hosts.txt </br>
 http://malc0de.com/bl/ZONES </br>
