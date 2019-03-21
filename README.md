@@ -49,7 +49,9 @@ https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-blocklist.txt <
 https://v.firebog.net/hosts/Prigent-Malware.txt </br>
 https://v.firebog.net/hosts/Prigent-Phishing.txt </br>
 https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/SmartTV.txt </br>
-total of 397633 domains blacklisted
+total of 397633 domains blacklisted</br>
+You may also download the additional domains as single file:</br>
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/more_piholeBL.txt </br>
 
 Check out https://firebog.net/ for more lists
 
