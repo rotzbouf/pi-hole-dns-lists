@@ -7,7 +7,7 @@ DNS Lists to use with Pi-Hole DNS Blocker
  
 You may remove all default blocklists as they are included again in this list.
 
-https://mirror1.malwaredomains.com/files/justdomains
+https://mirror1.malwaredomains.com/files/justdomains </p>
 http://sysctl.org/cameleon/hosts
 
 https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist 	
