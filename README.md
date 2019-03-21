@@ -36,3 +36,7 @@ http://mirror1.malwaredomains.com/files/justdomains </br>
 https://isc.sans.edu/feeds/suspiciousdomains_High.txt </br>
 http://osint.bambenekconsulting.com/feeds/dga-feed-high.csv </br>
 https://raw.githubusercontent.com/jonschipp/mal-dnssearch/master/mandiant_apt1.dns </br>
+
+https://isc.sans.edu/feeds/suspiciousdomains_Low.txt </br>
+https://isc.sans.edu/feeds/suspiciousdomains_Medium.txt </br>
+https://isc.sans.edu/feeds/suspiciousdomains_High.txt </br>
