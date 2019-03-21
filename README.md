@@ -28,3 +28,11 @@ https://raw.githubusercontent.com/Akamaru/Pi-Hole-Lists/master/nomsdata.txt 	 </
 https://raw.githubusercontent.com/Akamaru/Pi-Hole-Lists/master/other.txt 	 </br>
 https://raw.githubusercontent.com/Akamaru/Pi-Hole-Lists/master/youtube.txt 	 </br>
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts </br>
+
+http://osint.bambenekconsulting.com/feeds/c2-dommasterlist.txt </br>
+http://www.malwaredomainlist.com/hostslist/hosts.txt </br>
+http://malc0de.com/bl/ZONES </br>
+http://mirror1.malwaredomains.com/files/justdomains </br>
+https://isc.sans.edu/feeds/suspiciousdomains_High.txt </br>
+http://osint.bambenekconsulting.com/feeds/dga-feed-high.csv </br>
+https://raw.githubusercontent.com/jonschipp/mal-dnssearch/master/mandiant_apt1.dns </br>
