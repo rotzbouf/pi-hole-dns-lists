@@ -42,3 +42,6 @@ https://isc.sans.edu/feeds/suspiciousdomains_Medium.txt </br>
 https://isc.sans.edu/feeds/suspiciousdomains_High.txt </br>
 
 Check out https://firebog.net/ for more lists
+
+Frequently Whitelisted Domains with their explanations
+https://discourse.pi-hole.net/t/commonly-whitelisted-domains/212
