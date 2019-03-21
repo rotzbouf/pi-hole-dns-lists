@@ -32,6 +32,7 @@ https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts </br>
 <h1>piholeBL.txt</h1>
 https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/piholeBL.txt </br>
 The file piholeBL.txt contains all the above domains grouped in one file. </br>
+I did not experienced any problems on my daily use with the above list.
 The below files can be added additionally. <p>
 
 http://www.malwaredomainlist.com/hostslist/hosts.txt </br>
@@ -48,6 +49,7 @@ https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-blocklist.txt <
 https://v.firebog.net/hosts/Prigent-Malware.txt </br>
 https://v.firebog.net/hosts/Prigent-Phishing.txt </br>
 https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/SmartTV.txt </br>
+total of 397633 domains blacklisted
 
 Check out https://firebog.net/ for more lists
 
