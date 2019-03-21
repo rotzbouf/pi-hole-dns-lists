@@ -40,3 +40,5 @@ https://raw.githubusercontent.com/jonschipp/mal-dnssearch/master/mandiant_apt1.d
 https://isc.sans.edu/feeds/suspiciousdomains_Low.txt </br>
 https://isc.sans.edu/feeds/suspiciousdomains_Medium.txt </br>
 https://isc.sans.edu/feeds/suspiciousdomains_High.txt </br>
+
+Check out https://firebog.net/ for more lists
