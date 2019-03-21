@@ -30,19 +30,28 @@ https://raw.githubusercontent.com/Akamaru/Pi-Hole-Lists/master/youtube.txt 	 </b
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts </br>
 
 <h1>piholeBL.txt</h1>
-The file piholeBL.txt contains all the above domains grouped in one file.
+The file piholeBL.txt contains all the above domains grouped in one file. </br>
+The below files can be added additionally.
 
-http://osint.bambenekconsulting.com/feeds/c2-dommasterlist.txt </br>
 http://www.malwaredomainlist.com/hostslist/hosts.txt </br>
-http://malc0de.com/bl/ZONES </br>
-http://mirror1.malwaredomains.com/files/justdomains </br>
-https://isc.sans.edu/feeds/suspiciousdomains_High.txt </br>
-http://osint.bambenekconsulting.com/feeds/dga-feed-high.csv </br>
 https://raw.githubusercontent.com/jonschipp/mal-dnssearch/master/mandiant_apt1.dns </br>
+https://hosts-file.net/grm.txt </br>
+https://raw.githubusercontent.com/StevenBlack/hosts/master/data/KADhosts/hosts </br>
+https://raw.githubusercontent.com/StevenBlack/hosts/master/data/add.Spam/hosts </br>
+https://v.firebog.net/hosts/static/w3kbl.txt </br>
+https://adaway.org/hosts.txt </br>
+https://v.firebog.net/hosts/AdguardDNS.txt </br>
+https://raw.githubusercontent.com/anudeepND/blacklist/master/adservers.txt </br>
+https://v.firebog.net/hosts/Easyprivacy.txt </br>
+https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-blocklist.txt </br>
+https://v.firebog.net/hosts/Prigent-Malware.txt </br>
+https://v.firebog.net/hosts/Prigent-Phishing.txt </br>
 
 https://isc.sans.edu/feeds/suspiciousdomains_Low.txt </br>
 https://isc.sans.edu/feeds/suspiciousdomains_Medium.txt </br>
 https://isc.sans.edu/feeds/suspiciousdomains_High.txt </br>
+
+http://osint.bambenekconsulting.com/feeds/dga-feed-high.csv </br>
 
 Check out https://firebog.net/ for more lists
 
