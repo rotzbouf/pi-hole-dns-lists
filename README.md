@@ -45,3 +45,5 @@ Check out https://firebog.net/ for more lists
 
 Frequently Whitelisted Domains with their explanations
 https://discourse.pi-hole.net/t/commonly-whitelisted-domains/212
+
+Also see: https://github.com/chadmayfield/my-pihole-blocklists
