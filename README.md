@@ -13,8 +13,8 @@ List of approved Blocked Domains:
 <h1>piholeBL.txt</h1>
 https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/piholeBL.txt </br>
 The file piholeBL.txt contains all the above domains grouped in one file. </br>
-I did not experienced any problems on my daily use with the above list.
-The below files can be added additionally. <p>
+I did not experienced any problems on my daily use with the above list.<p>
+The below lists can be added additionally. <p>
 
 List of additional Blocked Domains:
 <b>more_piholeBL.list</b> total of 397633 domains blacklisted</br>
