@@ -1,0 +1,14 @@
+http://www.malwaredomainlist.com/hostslist/hosts.txt
+https://raw.githubusercontent.com/jonschipp/mal-dnssearch/master/mandiant_apt1.dns
+https://hosts-file.net/grm.txt
+https://raw.githubusercontent.com/StevenBlack/hosts/master/data/KADhosts/hosts
+https://raw.githubusercontent.com/StevenBlack/hosts/master/data/add.Spam/hosts
+https://v.firebog.net/hosts/static/w3kbl.txt
+https://adaway.org/hosts.txt
+https://v.firebog.net/hosts/AdguardDNS.txt
+https://raw.githubusercontent.com/anudeepND/blacklist/master/adservers.txt
+https://v.firebog.net/hosts/Easyprivacy.txt
+https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-blocklist.txt
+https://v.firebog.net/hosts/Prigent-Malware.txt
+https://v.firebog.net/hosts/Prigent-Phishing.txt
+https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/SmartTV.txt
