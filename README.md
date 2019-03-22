@@ -17,8 +17,8 @@ I did not experienced any problems on my daily use with the above list.
 The below files can be added additionally. <p>
 
 List of additional Blocked Domains:
-<b>more_piholeBL.list</b></br>
-total of 397633 domains blacklisted</br>
+<b>more_piholeBL.list</b> total of 397633 domains blacklisted</br>
+</br>
 You may also download the additional domains as single file:</br>
 https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/more_piholeBL.txt </br>
 
