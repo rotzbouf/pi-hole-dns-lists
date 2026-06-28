@@ -26,30 +26,53 @@ ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
 warn() { echo -e "  ${YELLOW}!${NC} $*"; }
 
 # ── Curated list of modern, actively maintained sources ────────────────────────
-# Ordered by category: Threat → Ads/Tracking → Specific purposes
+# --recommend checks these in parallel and auto-adds all live, not-yet-included ones.
 RECOMMENDED_NAMES=(
-    "URLhaus — active malware URLs (abuse.ch; replaces zeustracker/ransomwaretracker)"
-    "HaGeZi Threat Intelligence Feeds — malware, phishing, C&C servers"
+    # Threat / Malware / Phishing
+    "URLhaus — active malware URLs (abuse.ch)"
+    "HaGeZi Threat Intelligence Feeds — malware, phishing, C&C"
+    "HaGeZi Fake — Fake-Shops, -News, -Support-Seiten"
     "Phishing Database — active phishing domains"
-    "HaGeZi Multi — ads, tracking, spam (sehr umfassend)"
-    "HaGeZi Pop-Up Ads"
-    "OISD Big — breit, wenig false-positives"
-    "1Hosts Lite — ausgewogen, wenig false-positives"
-    "Windows Spy Blocker — Microsoft-Telemetrie blockieren"
-    "NoCoin — Cryptomining-Domains (ersetzt Akamaru cryptomine)"
+    "Spam404 — Scam & Spam-Seiten"
+    "BlockList Project — Malware"
+    "BlockList Project — Phishing"
+    "OSINT Digital Side — aktuelle Threat-Intel-Domains"
+    # Ads / Tracking
+    "HaGeZi Multi — Werbung, Tracking, Spam (umfassend)"
+    "HaGeZi Pro — ausgewogen, wenig false-positives"
+    "OISD Big — breite Abdeckung, wenig false-positives"
+    "1Hosts Pro — umfassend"
+    "1Hosts Lite — ausgewogen"
+    "Peter Lowe — Werbung & Tracking-Server"
+    # Specific
+    "HaGeZi Gambling — Glücksspiel-Domains"
+    "HaGeZi DoH/VPN/TOR/Proxy — Bypass-Schutz"
+    "Windows Spy Blocker — Microsoft-Telemetrie"
+    "NoCoin — Cryptomining-Domains"
     "StevenBlack Fakenews+Gambling — Kategorien-Erweiterung"
+    "RPiList Malware — kuratierte Malware-Liste (DE)"
 )
 RECOMMENDED_URLS=(
     "https://urlhaus.abuse.ch/downloads/hostfile/"
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/tif.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/fake.txt"
     "https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt"
+    "https://raw.githubusercontent.com/Spam404/lists/master/main-blacklist.txt"
+    "https://raw.githubusercontent.com/blocklistproject/Lists/master/malware.txt"
+    "https://raw.githubusercontent.com/blocklistproject/Lists/master/phishing.txt"
+    "https://osint.digitalside.it/Threat-Intel/lists/latestdomains.txt"
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/multi.txt"
-    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/popupads.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt"
     "https://big.oisd.nl/"
+    "https://o0.pages.dev/Pro/hosts.txt"
     "https://o0.pages.dev/Lite/hosts.txt"
+    "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/gambling.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/doh-vpn-proxy-bypass.txt"
     "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy.txt"
     "https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt"
     "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling/hosts"
+    "https://raw.githubusercontent.com/RPiList/specials/master/Blocklisten/malware"
 )
 
 usage() {
@@ -61,7 +84,7 @@ Usage: update.sh [OPTIONS]
   --generate        Regenerate .txt files from working sources
   --add <url>       Add a new URL (checks for duplicates and availability)
   --to <list>       Target list for --add: "pihole" (default) or "more"
-  --recommend       Browse curated modern sources and add interactively
+  --recommend       Auto-add all live curated sources not yet in the lists
   --dry-run         Show changes without modifying files
   -h, --help        Show this help
 
@@ -71,7 +94,9 @@ Examples:
   ./update.sh --update --generate                # prune dead + rebuild .txt
   ./update.sh --add https://example.com/bl.txt   # add a specific URL
   ./update.sh --add https://example.com/bl.txt --to more
-  ./update.sh --recommend                        # interactive curated list
+  ./update.sh --recommend                        # auto-add all live curated sources
+  ./update.sh --recommend --to more              # add to more_piholeBL.list instead
+  ./update.sh --recommend --dry-run              # preview what would be added
 EOF
     exit 0
 }
@@ -174,20 +199,22 @@ cmd_add() {
     fi
 }
 
-# ── --recommend: curated list with parallel availability checks ────────────────
+# ── --recommend: check curated list in parallel, auto-add all live new entries ──
 
 cmd_recommend() {
-    log "Recommended blocklists"
-    echo
-    printf "  %s" "Checking availability"
+    local target="$ADD_TO"
 
-    # Build set of already-added URLs
+    log "Syncing recommended sources → $target"
+    echo
+    printf "  Checking availability"
+
+    # Collect all currently configured URLs for duplicate detection
     local existing_urls
     existing_urls=$(grep -hv '^[[:space:]]*[#]' \
         "$SCRIPT_DIR/piholeBL.list" "$SCRIPT_DIR/more_piholeBL.list" 2>/dev/null | \
         grep -v '^[[:space:]]*$' || true)
 
-    # Parallel URL checks: each writes its code to a tmpfile named by index.
+    # Parallel URL checks: each writes its HTTP code to a tmpfile.
     # </dev/null prevents background jobs from consuming piped stdin.
     local tmpdir
     tmpdir=$(mktemp -d)
@@ -197,78 +224,42 @@ cmd_recommend() {
     wait
     echo  # newline after the dots
 
-    # Collect codes and display
+    # Display status and collect URLs that need to be added
     echo
-    local available_indices=()
+    local to_add=()
     for i in "${!RECOMMENDED_NAMES[@]}"; do
         local url="${RECOMMENDED_URLS[$i]}"
         local name="${RECOMMENDED_NAMES[$i]}"
         local code
         code=$(cat "$tmpdir/$i" 2>/dev/null || echo "000")
-        local n=$((i + 1))
 
         if echo "$existing_urls" | grep -qxF "$url"; then
-            printf "  ${DIM}[%2d] %-58s  ✓ bereits vorhanden${NC}\n" "$n" "$name"
+            printf "  ${DIM}%-62s  ✓ vorhanden${NC}\n" "$name"
         elif [[ "$code" == "200" ]]; then
-            printf "  ${BOLD}[%2d]${NC} %-58s  ${GREEN}live${NC}\n" "$n" "$name"
-            printf "       ${DIM}%s${NC}\n" "$url"
-            available_indices+=("$i")
+            printf "  ${GREEN}+${NC} ${BOLD}%-62s${NC}  ${GREEN}→ wird hinzugefügt${NC}\n" "$name"
+            to_add+=("$url")
         else
-            printf "  ${DIM}[%2d] %-58s  ${RED}tot ($code)${NC}\n" "$n" "$name"
+            printf "  ${DIM}%-62s  ✗ tot ($code)${NC}\n" "$name"
         fi
     done
     rm -rf "$tmpdir"
 
-    if [[ ${#available_indices[@]} -eq 0 ]]; then
-        echo
-        warn "Alle empfohlenen Listen sind bereits hinzugefügt oder nicht erreichbar."
+    echo
+    if [[ ${#to_add[@]} -eq 0 ]]; then
+        ok "Alle empfohlenen aktiven Listen sind bereits vorhanden."
         return
     fi
 
-    # Selection prompt
+    printf "  %d neue URL(s) werden zu %s hinzugefügt\n" "${#to_add[@]}" "$target"
     echo
-    printf "  Nummern eingeben (z.B. 1,3 oder 'all'), oder q zum Abbrechen: "
-    local selection=""
-    read -r selection || true
-    [[ "$selection" == "q" || -z "$selection" ]] && return
 
-    local selected_indices=()
-    if [[ "$selection" == "all" ]]; then
-        selected_indices=("${available_indices[@]}")
-    else
-        IFS=',' read -ra parts <<< "$selection"
-        for part in "${parts[@]}"; do
-            local n
-            n=$(echo "$part" | tr -d ' ')
-            if [[ "$n" =~ ^[0-9]+$ ]] && (( n >= 1 && n <= ${#RECOMMENDED_NAMES[@]} )); then
-                local idx=$((n - 1))
-                local url="${RECOMMENDED_URLS[$idx]}"
-                if echo "$existing_urls" | grep -qxF "$url"; then
-                    warn "$n bereits vorhanden, übersprungen"
-                else
-                    selected_indices+=("$idx")
-                fi
-            else
-                warn "Ungültige Eingabe: '$part'"
-            fi
-        done
-    fi
-
-    [[ ${#selected_indices[@]} -eq 0 ]] && return
-
-    # Target list selection
-    echo
-    printf "  Zu welcher Liste hinzufügen?\n"
-    printf "  [1] piholeBL.list (Standard)   [2] more_piholeBL.list\n"
-    printf "  Auswahl: "
-    local list_choice=""
-    read -r list_choice || true
-    local target_list="piholeBL.list"
-    [[ "$list_choice" == "2" ]] && target_list="more_piholeBL.list"
-
-    # Add each selected URL
-    for idx in "${selected_indices[@]}"; do
-        cmd_add "${RECOMMENDED_URLS[$idx]}" "$target_list"
+    for url in "${to_add[@]}"; do
+        if $DRY_RUN; then
+            warn "dry-run: $url"
+        else
+            echo "$url" >> "$SCRIPT_DIR/$target"
+            ok "$url"
+        fi
     done
 }
 
