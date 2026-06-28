@@ -1,30 +1,64 @@
 # pi-hole-dns-lists
-DNS Lists to use with Pi-Hole DNS Blocker
 
- - Login to your Pi-Hole
- - Go to Settings
- - Open Blocklists Tab
- 
-You may remove all default blocklists as they are included again in this list.
+DNS blocklists for use with [Pi-Hole](https://pi-hole.net/).
 
-List of approved Blocked Domains:
-<b>piholeBL.list</b>
+## Setup
 
-<h1>piholeBL.txt</h1>
-https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/piholeBL.txt </br>
-The file piholeBL.txt contains all the above domains grouped in one file. </br>
-I did not experienced any problems on my daily use with the above list.<p><p>
-The below lists can be added additionally. <p>
+1. Login to your Pi-Hole
+2. Go to **Settings → Blocklists**
+3. Add the raw URL of one of the lists below
+4. Run **Update Gravity**
 
-List of additional Blocked Domains:
-<b>more_piholeBL.list</b> total of 397633 domains blacklisted</br>
-</br>
-You may also download the additional domains as single file:</br>
-https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/more_piholeBL.txt </br>
+You may remove all default blocklists — they are already included here.
 
-Check out https://firebog.net/ for more lists
+---
 
-Frequently Whitelisted Domains with their explanations
-https://discourse.pi-hole.net/t/commonly-whitelisted-domains/212
+## Lists
 
-Also see: https://github.com/chadmayfield/my-pihole-blocklists
+### piholeBL.txt — main list
+```
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/piholeBL.txt
+```
+A curated collection of ad, tracking, malware, and phishing domains.
+No issues observed in daily use.
+
+### more_piholeBL.txt — extended list
+```
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/more_piholeBL.txt
+```
+Additional sources for broader coverage. Add on top of the main list.
+
+---
+
+## Keeping the lists up to date
+
+The repository includes `update.sh` — a script to check source URL health,
+remove defunct entries, add modern sources, and rebuild the compiled `.txt` files.
+
+```bash
+# Check which source URLs are still alive
+./update.sh
+
+# Remove dead URLs from .list files + rebuild .txt files
+./update.sh --update --generate
+
+# Add a specific URL
+./update.sh --add https://example.com/blocklist.txt
+
+# Add to the extended list instead
+./update.sh --add https://example.com/blocklist.txt --to more
+
+# Browse and add from a curated list of modern sources
+./update.sh --recommend
+
+# Preview changes without modifying any files
+./update.sh --update --dry-run
+```
+
+---
+
+## Whitelists & further resources
+
+- [Commonly whitelisted domains](https://discourse.pi-hole.net/t/commonly-whitelisted-domains/212)
+- [firebog.net](https://firebog.net/) — curated, regularly tested blocklist collection
+- [github.com/chadmayfield/my-pihole-blocklists](https://github.com/chadmayfield/my-pihole-blocklists)
