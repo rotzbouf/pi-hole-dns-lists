@@ -48,10 +48,14 @@ remove defunct entries, add modern sources, and rebuild the compiled `.txt` file
 # Add to the extended list instead
 ./update.sh --add https://example.com/blocklist.txt --to more
 
-# Browse and add from a curated list of modern sources
+# Auto-add all live curated sources not yet in the lists (20 sources checked in parallel)
 ./update.sh --recommend
 
+# Add to the extended list instead of the main list
+./update.sh --recommend --to more
+
 # Preview changes without modifying any files
+./update.sh --recommend --dry-run
 ./update.sh --update --dry-run
 ```
 
