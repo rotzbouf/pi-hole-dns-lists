@@ -144,7 +144,7 @@ extract_domains() {
     ' | \
     grep -Ev '^[0-9.]+$' | \
     grep -E '^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$' | \
-    tr '[:upper:]' '[:lower:]'
+    tr '[:upper:]' '[:lower:]' || true
 }
 
 # Returns the list file ("piholeBL.list" / "more_piholeBL.list" / "") that already contains $1
