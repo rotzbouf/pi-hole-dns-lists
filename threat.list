@@ -1,0 +1,20 @@
+# Malware, phishing, C2, ransomware, scam, fraud, spam-domains
+http://www.networksec.org/grabbho/block.txt
+https://joewein.net/dl/bl/dom-bl-base.txt
+https://urlhaus.abuse.ch/downloads/hostfile/
+https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/tif.txt
+https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt
+https://raw.githubusercontent.com/blocklistproject/Lists/master/scam.txt
+https://raw.githubusercontent.com/Spam404/lists/master/main-blacklist.txt
+https://raw.githubusercontent.com/blocklistproject/Lists/master/malware.txt
+https://raw.githubusercontent.com/blocklistproject/Lists/master/phishing.txt
+https://threatfox.abuse.ch/downloads/hostfile/
+https://hole.cert.pl/domains/domains.txt
+https://raw.githubusercontent.com/RPiList/specials/master/Blocklisten/malware
+https://raw.githubusercontent.com/jonschipp/mal-dnssearch/master/mandiant_apt1.dns
+https://raw.githubusercontent.com/StevenBlack/hosts/master/data/add.Spam/hosts
+https://v.firebog.net/hosts/static/w3kbl.txt
+https://v.firebog.net/hosts/Prigent-Malware.txt
+https://raw.githubusercontent.com/DandelionSprout/adfilt/master/Alternate%20versions%20Anti-Malware%20List/AntiMalwareHosts.txt
+https://raw.githubusercontent.com/blocklistproject/Lists/master/ransomware.txt
+https://raw.githubusercontent.com/blocklistproject/Lists/master/fraud.txt

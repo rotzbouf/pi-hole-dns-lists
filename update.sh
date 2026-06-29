@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Pi-Hole blocklist updater
-# Checks source URL health, prunes dead entries, regenerates aggregated domain files,
-# and supports adding new URLs individually or from a curated recommended list.
+# Sources are organized into categories, each with a <category>.list (URLs) and
+# a generated <category>.txt (deduplicated domains).
 #
 # Usage: ./update.sh [--check] [--update] [--generate] [--add <url>] [--recommend] [--dry-run]
 
@@ -15,8 +15,10 @@ DO_UPDATE=false
 DO_GENERATE=false
 DO_ADD=false
 ADD_URL=""
-ADD_TO="piholeBL.list"
+ADD_TO="ads"
 DO_RECOMMEND=false
+
+CATEGORIES=("threat" "ads" "tracking" "telemetry" "gambling")
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 BLUE='\033[0;34m'; BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
@@ -25,54 +27,140 @@ log()  { echo -e "\n${BLUE}▶${NC} ${BOLD}$*${NC}"; }
 ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
 warn() { echo -e "  ${YELLOW}!${NC} $*"; }
 
-# ── Curated list of modern, actively maintained sources ────────────────────────
-# --recommend checks these in parallel and auto-adds all live, not-yet-included ones.
+# ── Curated sources ─────────────────────────────────────────────────────────────
+# Three parallel arrays (same index = same source).
+# RECOMMENDED_CATS determines which <category>.list each URL belongs to.
 RECOMMENDED_NAMES=(
     # Threat / Malware / Phishing
     "URLhaus — active malware URLs (abuse.ch)"
     "HaGeZi Threat Intelligence Feeds — malware, phishing, C&C"
-    "BlockList Project — Scam & Fake-Seiten"
+    "ThreatFox — Malware-IOCs & C2-Server (abuse.ch)"
     "Phishing Database — active phishing domains"
     "Spam404 — Scam & Spam-Seiten"
+    "DandelionSprout Anti-Malware — Malware & Exploit-Domains"
+    "DigitalSide Threat-Intel — aktuelle IOC-Domains (CERT Italia)"
+    "BlockList Project — Scam & Fake-Seiten"
     "BlockList Project — Malware"
     "BlockList Project — Phishing"
-    "ThreatFox — Malware-IOCs & C2-Server (abuse.ch)"
-    # Ads / Tracking
+    "BlockList Project — Ransomware"
+    "BlockList Project — Fraud (Betrug & Missbrauch)"
+    "RPiList Malware — kuratierte Malware-Liste (DE)"
+    "RPiList Phishing — kuratierte Phishing-Domains (DE)"
+    "HaGeZi Fake — Fake-Shops, Fake-News & Betrugsseiten"
+    "CERT Poland — aktuelle Phishing & Malware-Domains"
+    # Ads
     "HaGeZi Multi — Werbung, Tracking, Spam (umfassend)"
     "HaGeZi Pro — ausgewogen, wenig false-positives"
+    "HaGeZi Pop-up Ads — Popup-Werbung & Ablenkung"
     "OISD Big — breite Abdeckung, wenig false-positives"
     "GoodbyeAds — mobile Werbung & Tracking"
     "1Hosts Lite — ausgewogen"
+    "1Hosts Pro — aggressivere Werbeblockierung"
     "Peter Lowe — Werbung & Tracking-Server"
-    # Specific
-    "BlockList Project — Glücksspiel"
-    "CERT Poland — aktuelle Phishing & Malware-Domains"
+    "Dan Pollock (SomeoneWhoCares) — klassische Hosts-Liste"
+    "EasyList (Firebog-Mirror) — klassische Werbeblocker-Liste"
+    "BlockList Project — Ads (Werbung)"
+    # Tracking
+    "BlockList Project — Tracking"
+    # Telemetrie
     "Windows Spy Blocker — Microsoft-Telemetrie"
+    "HaGeZi Native Apple — Apple-Telemetrie"
+    "HaGeZi Native Samsung — Samsung-Telemetrie & Ads"
+    "HaGeZi Native TikTok — TikTok-Tracking & Telemetrie"
+    "HaGeZi Native Xiaomi — Xiaomi-Telemetrie & Ads"
+    "HaGeZi Native Amazon — Amazon-Telemetrie"
+    # Gambling / Fakenews / Crypto
+    "BlockList Project — Glücksspiel"
     "NoCoin — Cryptomining-Domains"
     "StevenBlack Fakenews+Gambling — Kategorien-Erweiterung"
-    "RPiList Malware — kuratierte Malware-Liste (DE)"
 )
 RECOMMENDED_URLS=(
+    # Threat
     "https://urlhaus.abuse.ch/downloads/hostfile/"
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/tif.txt"
-    "https://raw.githubusercontent.com/blocklistproject/Lists/master/scam.txt"
+    "https://threatfox.abuse.ch/downloads/hostfile/"
     "https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt"
     "https://raw.githubusercontent.com/Spam404/lists/master/main-blacklist.txt"
+    "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/Alternate%20versions%20Anti-Malware%20List/AntiMalwareHosts.txt"
+    "https://osint.digitalside.it/Threat-Intel/lists/latestdomains.txt"
+    "https://raw.githubusercontent.com/blocklistproject/Lists/master/scam.txt"
     "https://raw.githubusercontent.com/blocklistproject/Lists/master/malware.txt"
     "https://raw.githubusercontent.com/blocklistproject/Lists/master/phishing.txt"
-    "https://threatfox.abuse.ch/downloads/hostfile/"
+    "https://raw.githubusercontent.com/blocklistproject/Lists/master/ransomware.txt"
+    "https://raw.githubusercontent.com/blocklistproject/Lists/master/fraud.txt"
+    "https://raw.githubusercontent.com/RPiList/specials/master/Blocklisten/malware"
+    "https://raw.githubusercontent.com/RPiList/specials/master/Blocklisten/phishing"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/fake.txt"
+    "https://hole.cert.pl/domains/domains.txt"
+    # Ads
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/multi.txt"
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/popupads.txt"
     "https://big.oisd.nl/"
     "https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt"
     "https://o0.pages.dev/Lite/hosts.txt"
+    "https://o0.pages.dev/Pro/hosts.txt"
     "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext"
-    "https://raw.githubusercontent.com/blocklistproject/Lists/master/gambling.txt"
-    "https://hole.cert.pl/domains/domains.txt"
+    "https://someonewhocares.org/hosts/zero/hosts"
+    "https://v.firebog.net/hosts/Easylist.txt"
+    "https://raw.githubusercontent.com/blocklistproject/Lists/master/ads.txt"
+    # Tracking
+    "https://raw.githubusercontent.com/blocklistproject/Lists/master/tracking.txt"
+    # Telemetry
     "https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.apple.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.amazon.txt"
+    # Gambling
+    "https://raw.githubusercontent.com/blocklistproject/Lists/master/gambling.txt"
     "https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt"
     "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling/hosts"
-    "https://raw.githubusercontent.com/RPiList/specials/master/Blocklisten/malware"
+)
+RECOMMENDED_CATS=(
+    # Threat (16)
+    "threat"    # URLhaus
+    "threat"    # HaGeZi TIF
+    "threat"    # ThreatFox
+    "threat"    # Phishing Database
+    "threat"    # Spam404
+    "threat"    # DandelionSprout
+    "threat"    # DigitalSide
+    "threat"    # BlockList Scam
+    "threat"    # BlockList Malware
+    "threat"    # BlockList Phishing
+    "threat"    # BlockList Ransomware
+    "threat"    # BlockList Fraud
+    "threat"    # RPiList Malware
+    "threat"    # RPiList Phishing
+    "threat"    # HaGeZi Fake
+    "threat"    # CERT Poland
+    # Ads (11)
+    "ads"       # HaGeZi Multi
+    "ads"       # HaGeZi Pro
+    "ads"       # HaGeZi Pop-up
+    "ads"       # OISD Big
+    "ads"       # GoodbyeAds
+    "ads"       # 1Hosts Lite
+    "ads"       # 1Hosts Pro
+    "ads"       # Peter Lowe
+    "ads"       # Dan Pollock
+    "ads"       # EasyList
+    "ads"       # BlockList Ads
+    # Tracking (1)
+    "tracking"  # BlockList Tracking
+    # Telemetry (6)
+    "telemetry" # Windows Spy Blocker
+    "telemetry" # HaGeZi Native Apple
+    "telemetry" # HaGeZi Native Samsung
+    "telemetry" # HaGeZi Native TikTok
+    "telemetry" # HaGeZi Native Xiaomi
+    "telemetry" # HaGeZi Native Amazon
+    # Gambling (3)
+    "gambling"  # BlockList Gambling
+    "gambling"  # NoCoin
+    "gambling"  # StevenBlack Fakenews+Gambling
 )
 
 usage() {
@@ -83,19 +171,25 @@ Usage: update.sh [OPTIONS]
   --update          Remove dead URLs from .list files
   --generate        Regenerate .txt files from working sources
   --add <url>       Add a new URL (checks for duplicates and availability)
-  --to <list>       Target list for --add: "pihole" (default) or "more"
-  --recommend       Auto-add all live curated sources not yet in the lists
+  --to <category>   Target category for --add (default: ads)
+  --recommend       Auto-add all live curated sources not yet in any list
   --dry-run         Show changes without modifying files
   -h, --help        Show this help
+
+Categories (each has a <category>.list source file → <category>.txt output):
+  threat      Malware, phishing, C2, ransomware, scam, fraud
+  ads         Advertising domains
+  tracking    Trackers and privacy
+  telemetry   Native device and OS telemetry
+  gambling    Gambling, fakenews, cryptomining
 
 Examples:
   ./update.sh                                    # check URL health
   ./update.sh --update --dry-run                 # preview dead URL removal
-  ./update.sh --update --generate                # prune dead + rebuild .txt
-  ./update.sh --add https://example.com/bl.txt   # add a specific URL
-  ./update.sh --add https://example.com/bl.txt --to more
+  ./update.sh --update --generate                # prune dead + rebuild .txt files
+  ./update.sh --add https://example.com/bl.txt   # add to ads (default)
+  ./update.sh --add https://example.com/bl.txt --to threat
   ./update.sh --recommend                        # auto-add all live curated sources
-  ./update.sh --recommend --to more              # add to more_piholeBL.list instead
   ./update.sh --recommend --dry-run              # preview what would be added
 EOF
     exit 0
@@ -111,9 +205,8 @@ while [[ $# -gt 0 ]]; do
         --add)       DO_ADD=true; ADD_URL="${2:?'--add requires a URL'}"; shift 2 ;;
         --to)
             case "${2:-}" in
-                pihole) ADD_TO="piholeBL.list" ;;
-                more)   ADD_TO="more_piholeBL.list" ;;
-                *) echo "Unknown list '${2:-}' — use 'pihole' or 'more'" >&2; exit 1 ;;
+                threat|ads|tracking|telemetry|gambling) ADD_TO="${2}" ;;
+                *) echo "Unknown category '${2:-}' — use: threat, ads, tracking, telemetry, gambling" >&2; exit 1 ;;
             esac
             shift 2 ;;
         --recommend) DO_RECOMMEND=true; shift ;;
@@ -126,7 +219,6 @@ done
 # ── Core helpers ───────────────────────────────────────────────────────────────
 
 check_url() {
-    # curl always writes "%{http_code}" (incl. "000" on timeout), no fallback needed
     curl -s -o /dev/null -w "%{http_code}" \
         --max-time "$TIMEOUT" --location --max-redirs 5 "$1" 2>/dev/null; true
 }
@@ -147,28 +239,27 @@ extract_domains() {
     tr '[:upper:]' '[:lower:]' || true
 }
 
-# Returns the list file ("piholeBL.list" / "more_piholeBL.list" / "") that already contains $1
+# Returns the .list file that already contains $1, or empty string if not found.
 find_in_lists() {
     local url="$1"
-    for list in piholeBL.list more_piholeBL.list; do
-        if grep -qxF "$url" "$SCRIPT_DIR/$list" 2>/dev/null; then
-            echo "$list"
+    for cat in "${CATEGORIES[@]}"; do
+        if grep -qxF "$url" "$SCRIPT_DIR/${cat}.list" 2>/dev/null; then
+            echo "${cat}.list"
             return 0
         fi
     done
-    return 0  # not found is still a success — caller checks empty string
 }
 
-# ── --add: add a single URL ────────────────────────────────────────────────────
+# ── --add: add a single URL to a category ─────────────────────────────────────
 
 cmd_add() {
     local url="$1"
-    local target="$2"
+    local cat="$2"
+    local target="${cat}.list"
     local target_path="$SCRIPT_DIR/$target"
 
     log "Adding URL to $target"
 
-    # Duplicate check
     local existing_in
     existing_in=$(find_in_lists "$url")
     if [[ -n "$existing_in" ]]; then
@@ -176,7 +267,6 @@ cmd_add() {
         return 0
     fi
 
-    # Availability check
     printf "  Checking  %s\n" "$url"
     local code
     code=$(check_url "$url")
@@ -199,75 +289,88 @@ cmd_add() {
     fi
 }
 
-# ── --recommend: check curated list in parallel, auto-add all live new entries ──
+# ── --recommend: check curated sources in parallel, add live ones by category ──
 
 cmd_recommend() {
-    local target="$ADD_TO"
-
-    log "Syncing recommended sources → $target"
+    log "Syncing recommended sources"
     echo
     printf "  Checking availability"
 
-    # Collect all currently configured URLs for duplicate detection
     local existing_urls
-    existing_urls=$(grep -hv '^[[:space:]]*[#]' \
-        "$SCRIPT_DIR/piholeBL.list" "$SCRIPT_DIR/more_piholeBL.list" 2>/dev/null | \
-        grep -v '^[[:space:]]*$' || true)
+    existing_urls=$(
+        for cat in "${CATEGORIES[@]}"; do
+            grep -hv '^[[:space:]]*[#]' "$SCRIPT_DIR/${cat}.list" 2>/dev/null || true
+        done | grep -v '^[[:space:]]*$' || true
+    )
 
-    # Parallel URL checks: each writes its HTTP code to a tmpfile.
-    # </dev/null prevents background jobs from consuming piped stdin.
     local tmpdir
     tmpdir=$(mktemp -d)
     for i in "${!RECOMMENDED_URLS[@]}"; do
         { check_url "${RECOMMENDED_URLS[$i]}" > "$tmpdir/$i"; printf '.'; } </dev/null &
     done
     wait
-    echo  # newline after the dots
-
-    # Display status and collect URLs that need to be added
     echo
-    local to_add=()
+
+    echo
+    declare -A to_add_per_cat
+    for cat in "${CATEGORIES[@]}"; do to_add_per_cat[$cat]=""; done
+
     for i in "${!RECOMMENDED_NAMES[@]}"; do
         local url="${RECOMMENDED_URLS[$i]}"
         local name="${RECOMMENDED_NAMES[$i]}"
+        local cat="${RECOMMENDED_CATS[$i]}"
         local code
         code=$(cat "$tmpdir/$i" 2>/dev/null || echo "000")
 
         if echo "$existing_urls" | grep -qxF "$url"; then
-            printf "  ${DIM}%-62s  ✓ vorhanden${NC}\n" "$name"
+            printf "  ${DIM}[%-9s] %-56s  ✓ vorhanden${NC}\n" "$cat" "$name"
         elif [[ "$code" == "200" ]]; then
-            printf "  ${GREEN}+${NC} ${BOLD}%-62s${NC}  ${GREEN}→ wird hinzugefügt${NC}\n" "$name"
-            to_add+=("$url")
+            printf "  ${GREEN}+${NC} ${BOLD}[%-9s]${NC} ${BOLD}%-56s${NC}  ${GREEN}→ wird hinzugefügt${NC}\n" "$cat" "$name"
+            to_add_per_cat[$cat]+="$url"$'\n'
         else
-            printf "  ${DIM}%-62s  ✗ tot ($code)${NC}\n" "$name"
+            printf "  ${DIM}[%-9s] %-56s  ✗ tot ($code)${NC}\n" "$cat" "$name"
         fi
     done
     rm -rf "$tmpdir"
 
     echo
-    if [[ ${#to_add[@]} -eq 0 ]]; then
+    local total_new=0
+    for cat in "${CATEGORIES[@]}"; do
+        [[ -z "${to_add_per_cat[$cat]}" ]] && continue
+        local count
+        count=$(printf '%s' "${to_add_per_cat[$cat]}" | grep -c .)
+        (( total_new += count )) || true
+    done
+
+    if [[ $total_new -eq 0 ]]; then
         ok "Alle empfohlenen aktiven Listen sind bereits vorhanden."
         return
     fi
 
-    printf "  %d neue URL(s) werden zu %s hinzugefügt\n" "${#to_add[@]}" "$target"
+    printf "  %d neue URL(s) werden hinzugefügt\n" "$total_new"
     echo
 
-    for url in "${to_add[@]}"; do
-        if $DRY_RUN; then
-            warn "dry-run: $url"
-        else
-            echo "$url" >> "$SCRIPT_DIR/$target"
-            ok "$url"
-        fi
+    for cat in "${CATEGORIES[@]}"; do
+        [[ -z "${to_add_per_cat[$cat]}" ]] && continue
+        local target="$SCRIPT_DIR/${cat}.list"
+        while IFS= read -r url; do
+            [[ -z "$url" ]] && continue
+            if $DRY_RUN; then
+                warn "dry-run → ${cat}.list: $url"
+            else
+                echo "$url" >> "$target"
+                ok "${cat}.list ← $url"
+            fi
+        done <<< "${to_add_per_cat[$cat]}"
     done
 }
 
-# ── --check / --update / --generate: process a .list file ─────────────────────
+# ── --check / --update / --generate: process one category ─────────────────────
 
 process_list() {
-    local list_file="$1"
-    local txt_file="${list_file%.list}.txt"
+    local cat="$1"
+    local list_file="${cat}.list"
+    local txt_file="${cat}.txt"
     local list_path="$SCRIPT_DIR/$list_file"
     local txt_path="$SCRIPT_DIR/$txt_file"
 
@@ -297,7 +400,6 @@ process_list() {
     echo
     printf "  Live: ${GREEN}%d${NC}   Dead: ${RED}%d${NC}\n" "${#live_urls[@]}" "${#dead_urls[@]}"
 
-    # --update: strip dead URLs while preserving comments and blank lines
     if $DO_UPDATE && [[ ${#dead_urls[@]} -gt 0 ]]; then
         log "Pruning ${#dead_urls[@]} dead URL(s) from $list_file"
 
@@ -315,7 +417,6 @@ process_list() {
         fi
     fi
 
-    # --generate: fetch live sources, extract domains, dedup, write .txt
     if $DO_GENERATE; then
         [[ ${#live_urls[@]} -eq 0 ]] && { warn "No live URLs — skipping $txt_file generation"; return; }
 
@@ -368,8 +469,8 @@ if $DO_ADD; then
 elif $DO_RECOMMEND; then
     cmd_recommend
 else
-    for list in piholeBL.list more_piholeBL.list; do
-        process_list "$list"
+    for cat in "${CATEGORIES[@]}"; do
+        process_list "$cat"
         echo
         echo "$SEP"
     done

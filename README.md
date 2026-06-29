@@ -2,62 +2,76 @@
 
 DNS blocklists for use with [Pi-Hole](https://pi-hole.net/).
 
+Sources are organized into categories. Each category has a `.list` file (source URLs)
+and a generated `.txt` file (compiled, deduplicated domains) ready to use in Pi-Hole.
+
 ## Setup
 
 1. Login to your Pi-Hole
 2. Go to **Settings → Blocklists**
-3. Add the raw URL of one of the lists below
+3. Add the raw URL(s) of the categories you want
 4. Run **Update Gravity**
 
-You may remove all default blocklists — they are already included here.
+You may remove all default Pi-Hole blocklists — they are already included here.
 
 ---
 
 ## Lists
 
-### piholeBL.txt — main list
+### threat.txt — Malware, phishing, C2, ransomware, scam, fraud
 ```
-https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/piholeBL.txt
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/threat.txt
 ```
-A curated collection of ad, tracking, malware, and phishing domains.
-No issues observed in daily use.
 
-### more_piholeBL.txt — extended list
+### ads.txt — Advertising domains
 ```
-https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/more_piholeBL.txt
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/ads.txt
 ```
-Additional sources for broader coverage. Add on top of the main list.
+
+### tracking.txt — Trackers and privacy
+```
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/tracking.txt
+```
+
+### telemetry.txt — Native device and OS telemetry
+```
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/telemetry.txt
+```
+
+### gambling.txt — Gambling, fakenews, cryptomining
+```
+https://raw.githubusercontent.com/rotzbouf/pi-hole-dns-lists/master/gambling.txt
+```
 
 ---
 
 ## Keeping the lists up to date
 
 The repository includes `update.sh` — a script to check source URL health,
-remove defunct entries, add modern sources, and rebuild the compiled `.txt` files.
+remove defunct entries, add curated sources, and rebuild the compiled `.txt` files.
 
 ```bash
 # Check which source URLs are still alive
 ./update.sh
 
-# Remove dead URLs from .list files + rebuild .txt files
+# Remove dead URLs + rebuild .txt files
 ./update.sh --update --generate
 
-# Add a specific URL
-./update.sh --add https://example.com/blocklist.txt
+# Preview changes without modifying any files
+./update.sh --update --dry-run
 
-# Add to the extended list instead
-./update.sh --add https://example.com/blocklist.txt --to more
+# Add a specific URL to a category
+./update.sh --add https://example.com/blocklist.txt --to threat
+./update.sh --add https://example.com/blocklist.txt --to ads
 
-# Auto-add all live curated sources not yet in the lists (20 sources checked in parallel)
+# Auto-add all live curated sources not yet in any list
 ./update.sh --recommend
 
-# Add to the extended list instead of the main list
-./update.sh --recommend --to more
-
-# Preview changes without modifying any files
+# Preview what --recommend would add
 ./update.sh --recommend --dry-run
-./update.sh --update --dry-run
 ```
+
+Available categories for `--to`: `threat`, `ads`, `tracking`, `telemetry`, `gambling`
 
 ---
 
@@ -65,4 +79,4 @@ remove defunct entries, add modern sources, and rebuild the compiled `.txt` file
 
 - [Commonly whitelisted domains](https://discourse.pi-hole.net/t/commonly-whitelisted-domains/212)
 - [firebog.net](https://firebog.net/) — curated, regularly tested blocklist collection
-- [github.com/chadmayfield/my-pihole-blocklists](https://github.com/chadmayfield/my-pihole-blocklists)
+- [hagezi/dns-blocklists](https://github.com/hagezi/dns-blocklists) — comprehensive, actively maintained lists
